@@ -1,0 +1,195 @@
+#pragma once
+#include "DisplayScreen.h"
+
+DisplayScreen::DisplayScreen()
+{
+	allowUpgrade = true;
+	//font15 = al_load_font("arial.ttf", 15, 0);
+	//font11 = al_load_font("arial.ttf", 11, 0);
+	redLive = false;
+	blueLive = false;
+	greenLive = false;
+	goodToGo = false;
+	loadedFont = false;
+	drawRange = false;
+	upgradeRed.SetLive(false);
+	upgradeGreen.SetLive(false);
+	upgradeBlue.SetLive(false);
+}
+void DisplayScreen::LoadFont(ALLEGRO_FONT **font15, ALLEGRO_FONT **font11)
+{
+	if(loadedFont == false)
+	{
+		*font15 = al_load_font("arial.ttf", 15, 0);
+		*font11 = al_load_font("arial.ttf", 11, 0);
+		loadedFont = true;
+	}
+}
+
+void DisplayScreen::Destroy()
+{
+	//al_destroy_font(font15);
+	//al_destroy_font(font11);
+}
+void DisplayScreen::SetGrid(MapElement *grid) //rename to set values. displays stats of chosen tower
+{
+	drawRange = true;
+	goodToGo = true;
+	DisplayScreen::grid = *grid;
+	redLive = DisplayScreen::grid.redTower.GetLive();
+	greenLive = DisplayScreen::grid.greenTower.GetLive();
+	blueLive = DisplayScreen::grid.blueTower.GetLive();
+	xPos = (DisplayScreen::grid.cell.GetXTop()+DisplayScreen::grid.cell.GetXBot())/2;
+	yPos = (DisplayScreen::grid.cell.GetYTop()+DisplayScreen::grid.cell.GetYBot())/2;
+
+	if(allowUpgrade == true)
+	{
+		upgradeRed.SetLive(true);
+		upgradeGreen.SetLive(true);
+		upgradeBlue.SetLive(true);
+
+		upgradeRed.SetActive(true);
+		upgradeGreen.SetActive(true);
+		upgradeBlue.SetActive(true);
+	}
+	else
+	{
+		upgradeRed.SetLive(true);
+		upgradeGreen.SetLive(true);
+		upgradeBlue.SetLive(true);
+
+		upgradeRed.SetActive(false);
+		upgradeGreen.SetActive(false);
+		upgradeBlue.SetActive(false);
+	}
+
+	if(redLive)
+	{
+		damage = DisplayScreen::grid.redTower.GetDamage();
+		cooldown = DisplayScreen::grid.redTower.GetCooldown();
+		range = DisplayScreen::grid.redTower.GetRange();
+		slow = DisplayScreen::grid.redTower.GetSlow();
+	}
+	else if(greenLive)
+	{
+		damage = DisplayScreen::grid.greenTower.GetDamage();
+		cooldown = DisplayScreen::grid.greenTower.GetCooldown();
+		range = DisplayScreen::grid.greenTower.GetRange();
+		slow = DisplayScreen::grid.greenTower.GetSlow();
+	}
+	else if(blueLive)
+	{
+		damage = DisplayScreen::grid.blueTower.GetDamage();
+		cooldown = DisplayScreen::grid.blueTower.GetCooldown();
+		range = DisplayScreen::grid.blueTower.GetRange();
+		slow = DisplayScreen::grid.blueTower.GetSlow();
+	}
+}
+void DisplayScreen::SetGrid(int tower, MapElement grid)
+{
+	goodToGo = true;
+	drawRange = false;
+	upgradeRed.SetLive(false);
+	upgradeGreen.SetLive(false);
+	upgradeBlue.SetLive(false);
+	allowUpgrade = true;
+
+	if(tower == 0)
+	{
+		redLive = true;
+		greenLive = false;
+		blueLive = false;
+		damage = grid.redTower.GetDamage();
+		cooldown = grid.redTower.GetCooldown();
+		range = grid.redTower.GetRange();
+		slow = grid.redTower.GetSlow();
+	}
+	else if(tower == 1)
+	{
+		redLive = false;
+		greenLive = true;
+		blueLive = false;
+		damage = grid.greenTower.GetDamage();
+		cooldown = grid.greenTower.GetCooldown();
+		range = grid.greenTower.GetRange();
+		slow = grid.greenTower.GetSlow();
+	}
+	else if(tower == 2)
+	{
+		redLive = false;
+		greenLive = false;
+		blueLive = true;
+		damage = grid.blueTower.GetDamage();
+		cooldown = grid.blueTower.GetCooldown();
+		range = grid.blueTower.GetRange();
+		slow = grid.blueTower.GetSlow();
+	}
+}
+void DisplayScreen::DrawBackground()
+{
+	al_draw_filled_rectangle(MAP_WIDTH, 0, DISP_WIDTH, MAP_HEIGHT, al_map_rgb(0, 0, 0));
+}
+void DisplayScreen::DrawDisplay(Player &player)//undo this argument parameter later
+{
+	al_draw_rectangle(MAP_WIDTH + 20, 80, DISP_WIDTH - 20, 350, al_map_rgb(255, 215, 0), 1);
+	if(goodToGo == true)
+	{
+		LoadFont(&font15, &font11);
+
+		al_draw_text(font15, al_map_rgb(255, 215, 0), 720, 118, 0, "Stats");
+		al_draw_textf(font11, al_map_rgb(255, 215, 0), 720, 138, 0, "Damage: %f", damage);
+		al_draw_textf(font11, al_map_rgb(255, 215, 0), 720, 156, 0, "Cooldown: %f", cooldown);
+		al_draw_textf(font11, al_map_rgb(255, 215, 0), 720, 174, 0, "Slow: %f", slow);
+		al_draw_textf(font11, al_map_rgb(255, 215, 0), 720, 192, 0, "Range: %f", range);
+
+		if(redLive)
+		{	
+			grid.redTower.DrawTower(730, 100);
+			if(drawRange == true)
+				al_draw_circle(xPos, yPos, range, al_map_rgb(255, 0, 0), 1);
+		}
+		else if(greenLive)
+		{	
+			grid.greenTower.DrawTower(730, 100);
+			if(drawRange == true)
+				al_draw_circle(xPos, yPos, range, al_map_rgb(0, 255, 0), 1);
+		}
+		else if(blueLive)
+		{	
+			grid.blueTower.DrawTower(730, 100);
+			if(drawRange == true)
+				al_draw_circle(xPos, yPos, range, al_map_rgb(0, 0, 255), 1);
+		}
+	}
+
+	//lives, waves, money///////////////////////////////this belongs in its own class preerty muchhhh
+	al_draw_rectangle(MAP_WIDTH + 20, 20, DISP_WIDTH - 20, 60, al_map_rgb(255, 215, 0), 1);
+	al_draw_line((MAP_WIDTH + DISP_WIDTH)/2, 20, (MAP_WIDTH + DISP_WIDTH)/2, 60, al_map_rgb(255, 215, 0), 1);
+	al_draw_line(MAP_WIDTH + 20, 40, DISP_WIDTH - 20, 40, al_map_rgb(255, 215, 0), 1);
+
+	int n = player.GetLives();
+	char *c = "0";
+	c += n;
+	//al_draw_text(font15, al_map_rgb(255, 215, 0), 30, 30, 0, "Stats");
+}
+void DisplayScreen::ClearDisplay()
+{
+	goodToGo = false;
+	upgradeRed.SetLive(false);
+	upgradeGreen.SetLive(false);
+	upgradeBlue.SetLive(false);
+}
+void DisplayScreen::CheckUpgradeValid(MapElement *grid)
+{
+	if(grid->redTower.GetRedUpgrade()+grid->redTower.GetGreenUpgrade()+grid->redTower.GetBlueUpgrade() >= 10
+		|| grid->greenTower.GetRedUpgrade()+grid->greenTower.GetGreenUpgrade()+grid->greenTower.GetBlueUpgrade() >= 10
+		|| grid->blueTower.GetRedUpgrade()+grid->blueTower.GetGreenUpgrade()+grid->blueTower.GetBlueUpgrade() >= 10)
+	{
+		allowUpgrade = false;
+		upgradeRed.SetActive(false);
+		upgradeGreen.SetActive(false);
+		upgradeBlue.SetActive(false);
+	}
+	else
+		allowUpgrade = true;
+}
