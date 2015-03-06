@@ -1,0 +1,19 @@
+#pragma once
+#include "Menu.h"
+
+Menu::Menu()
+{}
+void Menu::DrawMenuElements(Player player)
+{
+	displayScreen.DrawBackground(); //draws entire background of the menu, not just display screen... misleading name grr
+	displayScreen.DrawDisplay(player);
+	displayScreen.upgradeRed.DrawButton();
+	displayScreen.upgradeGreen.DrawButton();
+	displayScreen.upgradeBlue.DrawButton();
+	startPause.DrawButton();
+	nextWaveButton.DrawButton();
+	towerButton.DrawButtonBorder();
+	redButton.DrawButton();
+	greenButton.DrawButton();
+	blueButton.DrawButton();
+}
