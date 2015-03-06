@@ -1,0 +1,169 @@
+#pragma once
+#include "MapElement.h"
+#include <math.h>
+#include <allegro5/allegro5.h>
+#include <allegro5/allegro_primitives.h>
+
+enum COLORS{RED = 1, GREEN, BLUE};
+
+//Cell
+Cell::Cell()
+{
+	isEmpty = true;
+}
+//PathElement
+PathElement::PathElement()
+{
+	end = false;
+	isEmpty = false;
+	live = false;
+	start = false;
+}
+//Tower
+Tower::Tower()
+{
+	isEmpty = false;
+	live = false;
+	CDCount = 0;
+	blueUpgrade = 0;
+	greenUpgrade = 0;
+	redUpgrade = 0;
+}
+bool Tower::TimeToFire()
+{
+	CDCount++;
+	if(CDCount >= cooldown)
+		return true;
+	else
+		return false;
+}
+bool Tower::WithinRange(int xMonst, int yMonst)
+{
+	int xCenter = (xTop + xBot)/2;
+	int yCenter = (yTop + yBot)/2;
+	if(sqrt(pow(xMonst - xCenter+.0, 2) + pow(yMonst - yCenter+.0, 2)) <= range)
+		return true;
+	return false;
+}
+void Tower::IncreaseUpgrade(int color)
+{
+	if(color == RED)
+	{
+		redUpgrade++;
+		damage = damage*1.3;
+	}
+	else if(color == GREEN)
+	{
+		greenUpgrade++;
+		if(slow == 0)
+			slow = .05;
+		else
+			slow = slow + .002/slow;
+	}
+	else if(color == BLUE)
+	{
+		blueUpgrade++;
+		range = range*1.1;
+		cooldown = cooldown*.9;
+	}
+}
+//RedTower
+RedTower::RedTower()
+{
+	cooldown = 30;
+	damage = 5;
+	projCount = 0;
+	range = 150;
+	slow = 0;
+}
+void RedTower::DrawProjectiles()
+{
+	for(int i=0; i<20; i++)
+		if(projectiles[i].GetLive())
+			projectiles[i].DrawProjectile();
+}
+void RedTower::DrawTower()
+{
+	int xCenter = (xTop + xBot)/2;
+	int yCenter = (yTop + yBot)/2;
+	al_draw_circle(xCenter, yCenter, 10, al_map_rgb(255, 0, 0), 1);
+}
+void RedTower::DrawTower(int x, int y)
+{
+	al_draw_circle(x, y, 10, al_map_rgb(255, 0, 0), 1);
+}
+void RedTower::FireProjectile(int monstID)
+{
+	projectiles[projCount].SetLive(true);
+	projectiles[projCount].SetSlow(slow);
+	projectiles[projCount].SetMonsterID(monstID);
+	projectiles[projCount].SetXCenter((xTop+xBot)/2);
+	projectiles[projCount].SetYCenter((yTop+yBot)/2);
+	CDCount = 0;
+	if(++projCount > 19)
+		projCount = 0;
+}
+
+//GreenTower
+GreenTower::GreenTower()
+{
+	cooldown = 6;
+	damage = 1;
+	monsterID = 0;
+	range = 150;
+	slow = .2;
+}
+void GreenTower::DrawTower()
+{
+	int xCenter = (xTop + xBot)/2;
+	int yCenter = (yTop + yBot)/2;
+	al_draw_circle(xCenter, yCenter, 10, al_map_rgb(0, 255, 0), 1);
+}
+void GreenTower::DrawTower(int x, int y)
+{
+	al_draw_circle(x, y, 10, al_map_rgb(0, 255, 0), 1);
+}
+float GreenTower::FireLaser(int monstID)
+{
+	CDCount = 0;
+	monsterID = monstID;
+	return damage;
+}
+void GreenTower::DrawLaser(int xMonst, int yMonst)
+{
+	int xCenter = (xTop + xBot)/2;
+	int yCenter = (yTop + yBot)/2;
+	al_draw_line(xCenter, yCenter, xMonst, yMonst, al_map_rgb(0, 255, 0), 1);
+}
+//BlueTower
+BlueTower::BlueTower()
+{
+	cooldown = 120;
+	damage = 10;
+	fireAnimationLength = 0;
+	range = 100;
+	slow = 0;
+}
+void BlueTower::DrawFireAnimation()
+{
+	int xCenter = (xTop + xBot)/2;
+	int yCenter = (yTop + yBot)/2;
+	if(fireAnimationLength > 0)
+		al_draw_circle(xCenter, yCenter, range*(1-fireAnimationLength/15), al_map_rgb(0, 0, 255), 5);
+}
+void BlueTower::DrawTower()
+{
+	int xCenter = (xTop + xBot)/2;
+	int yCenter = (yTop + yBot)/2;
+	al_draw_circle(xCenter, yCenter, 10, al_map_rgb(0, 0, 255), 1);
+}
+void BlueTower::DrawTower(int x, int y)
+{
+	al_draw_circle(x, y, 10, al_map_rgb(0, 0, 255), 1);
+}
+float BlueTower::FireAttack()
+{
+	CDCount = 0;
+	fireAnimationLength = 15;
+	return damage;
+}
