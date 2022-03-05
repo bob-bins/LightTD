@@ -1,7 +1,7 @@
 #pragma once
 #include "Projectile.h"
 #include <math.h>
-#include <allegro5\allegro_primitives.h>
+#include <allegro5/allegro_primitives.h>
 
 Projectile::Projectile()
 {

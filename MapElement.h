@@ -1,6 +1,6 @@
 #pragma once
 #include "Projectile.h"
-#include "globals.h"
+#include "Globals.h"
 
 class Cell
 {
